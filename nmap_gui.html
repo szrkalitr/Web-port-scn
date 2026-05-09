@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NmapGUI Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@300;400;600;700;900&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:     #080b0f;
+  --bg1:    #0d1117;
+  --bg2:    #111820;
+  --bg3:    #16202c;
+  --line:   #1c2a38;
+  --line2:  #243040;
+  --c:      #00e5ff;
+  --c2:     #0099bb;
+  --cdim:   #003344;
+  --g:      #00ff7f;
+  --g2:     #00cc55;
+  --gdim:   #002211;
+  --r:      #ff2244;
+  --o:      #ff8800;
+  --y:      #ffdd00;
+  --m:      #cc44ff;
+  --t:      #8baac4;
+  --t2:     #4a6a88;
+  --t3:     #2a4055;
+  --w:      #e0eeff;
+  --mono:   'Inconsolata', monospace;
+  --ui:     'Barlow Condensed', sans-serif;
+  --sh-c:   0 0 16px #00e5ff44;
+  --sh-g:   0 0 16px #00ff7f44;
+  --sh-r:   0 0 12px #ff224444;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--t);font-family:var(--mono);font-size:13px}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
+
+/* ── TOP BAR ─────────────────────────────────────── */
+#top{
+  height:52px;background:var(--bg1);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:12px;padding:0 14px;flex-shrink:0;
+}
+.brand{
+  font-family:var(--ui);font-size:22px;font-weight:900;
+  letter-spacing:.12em;color:var(--c);text-shadow:var(--sh-c);
+  white-space:nowrap;display:flex;align-items:center;gap:8px;
+}
+.brand-sub{font-size:9px;font-weight:400;color:var(--t3);letter-spacing:.3em;display:block;margin-top:-3px}
+
+/* Target input */
+#target-wrap{
+  flex:1;max-width:380px;display:flex;align-items:center;gap:0;
+  border:1px solid var(--line2);border-radius:3px;background:var(--bg2);overflow:hidden;
+}
+#target-wrap label{
+  padding:0 10px;color:var(--t3);font-size:11px;white-space:nowrap;
+  border-right:1px solid var(--line2);height:100%;display:flex;align-items:center;
+}
+#target{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--c);font-family:var(--mono);font-size:13px;padding:0 10px;
+  caret-color:var(--c);height:34px;
+}
+#target::placeholder{color:var(--t3)}
+
+/* Profile select */
+#profile{
+  background:var(--bg2);border:1px solid var(--line2);color:var(--t);
+  font-family:var(--mono);font-size:12px;padding:0 8px;height:34px;
+  border-radius:3px;outline:none;cursor:pointer;min-width:180px;
+}
+
+/* Extra args */
+#extra-wrap{
+  display:flex;align-items:center;gap:0;border:1px solid var(--line2);
+  border-radius:3px;background:var(--bg2);overflow:hidden;flex:1;max-width:240px;
+}
+#extra-wrap label{padding:0 8px;color:var(--t3);font-size:10px;white-space:nowrap;border-right:1px solid var(--line2);height:100%;display:flex;align-items:center}
+#extra-args{flex:1;background:transparent;border:none;outline:none;color:var(--y);font-family:var(--mono);font-size:12px;padding:0 8px;height:34px;caret-color:var(--y)}
+#extra-args::placeholder{color:var(--t3)}
+
+/* Buttons */
+.btn{
+  height:34px;padding:0 16px;border:none;border-radius:3px;cursor:pointer;
+  font-family:var(--ui);font-size:14px;font-weight:700;letter-spacing:.1em;
+  transition:all .15s;white-space:nowrap;
+}
+#btn-scan{background:linear-gradient(135deg,var(--c2),#004466);color:var(--w);box-shadow:0 0 8px #00e5ff22}
+#btn-scan:hover{box-shadow:var(--sh-c);transform:translateY(-1px)}
+#btn-scan:disabled{opacity:.35;cursor:not-allowed;transform:none}
+#btn-stop{background:linear-gradient(135deg,#aa1122,#550011);color:var(--w);display:none}
+#btn-stop:hover{box-shadow:var(--sh-r)}
+
+.top-chip{
+  font-size:10px;color:var(--t3);background:var(--bg2);border:1px solid var(--line);
+  padding:3px 9px;border-radius:3px;white-space:nowrap;
+}
+.top-chip b{color:var(--c)}
+#nmap-status-chip{margin-left:auto}
+
+/* ── MANUAL BAR ──────────────────────────────────── */
+#manual-bar{
+  display:none;background:var(--bg1);border-bottom:1px solid var(--line);
+  padding:6px 14px;flex-shrink:0;align-items:center;gap:8px;
+}
+#manual-bar label{font-size:11px;color:var(--y);white-space:nowrap}
+#manual-cmd{
+  flex:1;background:var(--bg2);border:1px solid var(--y);border-radius:3px;
+  color:var(--y);font-family:var(--mono);font-size:13px;padding:5px 10px;outline:none;
+}
+#manual-cmd::placeholder{color:var(--t3)}
+#manual-hint{font-size:10px;color:var(--t3)}
+
+/* ── LAYOUT ──────────────────────────────────────── */
+#shell{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+#main{display:flex;flex:1;overflow:hidden}
+
+/* ── LEFT PANEL ──────────────────────────────────── */
+#left{
+  width:200px;background:var(--bg1);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;
+}
+.panel-hdr{
+  padding:7px 12px;font-family:var(--ui);font-size:10px;font-weight:700;
+  letter-spacing:.25em;color:var(--t3);text-transform:uppercase;
+  background:var(--bg);border-bottom:1px solid var(--line);flex-shrink:0;
+}
+#job-list{flex:1;overflow-y:auto}
+.job-item{
+  padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;
+  transition:background .1s;display:flex;flex-direction:column;gap:3px;
+}
+.job-item:hover{background:var(--bg2)}
+.job-item.active{background:var(--cdim);border-left:2px solid var(--c)}
+.ji-target{color:var(--c);font-size:12px;word-break:break-all}
+.ji-meta{color:var(--t3);font-size:10px}
+.ji-status{font-size:10px;font-weight:bold}
+.ji-status.running{color:var(--y)}
+.ji-status.done{color:var(--g)}
+.ji-status.error,.ji-status.stopped{color:var(--r)}
+
+/* ── CENTER ──────────────────────────────────────── */
+#center{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── TABS ────────────────────────────────────────── */
+#tabs{
+  display:flex;background:var(--bg1);border-bottom:1px solid var(--line);flex-shrink:0;
+}
+.tab{
+  padding:9px 16px;font-family:var(--ui);font-size:13px;font-weight:700;
+  letter-spacing:.08em;color:var(--t2);cursor:pointer;
+  border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;
+}
+.tab:hover{color:var(--t);background:var(--bg2)}
+.tab.on{color:var(--c);border-bottom-color:var(--c);background:var(--bg2)}
+.badge{
+  font-size:9px;background:var(--cdim);color:var(--c);
+  border-radius:10px;padding:1px 5px;margin-left:4px;
+}
+.badge.red{background:#3d0010;color:var(--r)}
+.badge.orange{background:#2d1400;color:var(--o)}
+
+/* ── PANELS ──────────────────────────────────────── */
+#panels{flex:1;overflow:hidden;display:flex}
+.pnl{flex:1;overflow:auto;display:none;flex-direction:column}
+.pnl.on{display:flex}
+
+/* Terminal */
+#terminal{
+  flex:1;overflow:auto;padding:12px 16px;
+  font-family:var(--mono);font-size:12.5px;line-height:1.75;
+  white-space:pre-wrap;word-break:break-word;color:var(--t);
+}
+.tl-sys   {color:var(--t3)}
+.tl-cmd   {color:var(--y);font-weight:bold}
+.tl-open  {color:var(--g);font-weight:bold}
+.tl-closed{color:var(--t3)}
+.tl-info  {color:var(--c)}
+.tl-warn  {color:var(--o)}
+.tl-err   {color:var(--r)}
+.tl-script{color:var(--m)}
+.tl-os    {color:var(--y)}
+.tl-sep   {color:var(--t3)}
+
+/* Progress */
+#prog-bar-wrap{
+  display:none;background:var(--bg);border-top:1px solid var(--line);
+  padding:5px 14px;flex-shrink:0;
+}
+#prog-track{height:3px;background:var(--bg2);border-radius:2px;overflow:hidden}
+#prog-fill{height:100%;background:linear-gradient(90deg,var(--c2),var(--c));
+  border-radius:2px;transition:width .4s;box-shadow:var(--sh-c)}
+#prog-txt{font-size:10px;color:var(--t3);margin-top:3px}
+
+/* Ports tab */
+#pnl-ports{padding:12px 14px}
+.sec-title{
+  font-family:var(--ui);font-size:11px;font-weight:700;
+  letter-spacing:.22em;color:var(--t3);text-transform:uppercase;
+  margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line);
+}
+table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12px}
+th{
+  background:var(--bg);color:var(--t3);font-family:var(--ui);font-size:10px;
+  font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+  padding:7px 10px;text-align:left;border:1px solid var(--line)
+}
+td{padding:6px 10px;border:1px solid var(--line);vertical-align:top}
+tr:hover td{background:var(--bg2)}
+.p-open{color:var(--g);font-weight:bold}
+.p-closed{color:var(--t3)}
+.p-filtered{color:var(--o)}
+.p-port{color:var(--y);font-weight:bold}
+.p-svc{color:var(--c)}
+.p-ver{color:var(--t2);font-size:11px}
+.p-script{color:var(--m);font-size:11px;white-space:pre-wrap;word-break:break-word}
+
+/* Hosts tab */
+#pnl-hosts{padding:12px 14px}
+.host-card{
+  background:var(--bg1);border:1px solid var(--line);border-left:3px solid var(--c);
+  border-radius:3px;padding:12px 16px;margin-bottom:12px;
+}
+.hc-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px}
+.hc-ip{font-family:var(--ui);font-size:20px;font-weight:900;color:var(--c)}
+.hc-hn{font-size:12px;color:var(--t2);margin-top:2px}
+.hc-os{font-size:12px;color:var(--y);margin-top:4px}
+.hc-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.hc-chip{
+  font-size:10px;padding:2px 8px;border-radius:3px;
+  background:var(--bg2);border:1px solid var(--line2);color:var(--t2)
+}
+
+/* Scripts tab */
+#pnl-scripts{padding:12px 14px}
+.script-card{
+  background:var(--bg1);border:1px solid var(--line);border-left:3px solid var(--m);
+  border-radius:3px;padding:10px 14px;margin-bottom:10px;
+}
+.sc-title{color:var(--m);font-family:var(--ui);font-size:15px;font-weight:700;margin-bottom:4px}
+.sc-host{color:var(--t3);font-size:10px;margin-bottom:6px}
+.sc-output{color:var(--t);font-size:11.5px;white-space:pre-wrap;word-break:break-word;
+  background:var(--bg);padding:8px 10px;border-radius:2px;border:1px solid var(--line)}
+
+/* Topology tab */
+#pnl-topo{background:var(--bg);position:relative;overflow:hidden}
+#topo-svg{width:100%;height:100%}
+#topo-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;color:var(--t3);font-family:var(--ui);gap:8px}
+
+/* Status bar */
+#statusbar{
+  height:24px;background:var(--bg);border-top:1px solid var(--line);
+  display:flex;align-items:center;padding:0 12px;gap:16px;
+  flex-shrink:0;font-size:10px;color:var(--t3);
+}
+.sb-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.sb-dot.green{background:var(--g);animation:sbpulse 2s infinite;box-shadow:var(--sh-g)}
+.sb-dot.yellow{background:var(--y);animation:sbpulse .8s infinite}
+.sb-dot.red{background:var(--r)}
+.sb-dot.gray{background:var(--t3)}
+@keyframes sbpulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Empty state */
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:10px;color:var(--t3);font-family:var(--ui)}
+.empty-icon{font-size:44px;opacity:.2}
+.empty-txt{font-size:15px;letter-spacing:.1em}
+
+/* Scan summary strip */
+#summary{
+  display:none;background:var(--bg);border-bottom:1px solid var(--line);
+  padding:8px 14px;flex-shrink:0;flex-wrap:wrap;gap:6px;
+}
+.sm{
+  background:var(--bg1);border:1px solid var(--line);border-radius:3px;
+  padding:5px 14px;display:flex;flex-direction:column;align-items:center;min-width:80px;
+}
+.sm-v{font-family:var(--ui);font-size:22px;font-weight:900;color:var(--c)}
+.sm-v.g{color:var(--g)} .sm-v.r{color:var(--r)} .sm-v.o{color:var(--o)} .sm-v.y{color:var(--y)}
+.sm-l{font-size:9px;color:var(--t3);letter-spacing:.15em;margin-top:1px}
+
+/* CMD preview */
+#cmd-preview{
+  background:var(--bg);border-bottom:1px solid var(--line);
+  padding:5px 14px;font-size:11px;color:var(--t3);font-family:var(--mono);
+  flex-shrink:0;display:none;
+}
+#cmd-preview b{color:var(--y)}
+</style>
+</head>
+<body>
+<div id="shell">
+
+<!-- TOP -->
+<div id="top">
+  <div class="brand">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <circle cx="11" cy="11" r="10" stroke="#00e5ff" stroke-width="1.2"/>
+      <circle cx="11" cy="11" r="6"  stroke="#00e5ff" stroke-width="1" stroke-dasharray="3 2"/>
+      <circle cx="11" cy="11" r="2.5" fill="#00e5ff"/>
+    </svg>
+    <div>NMAP<b style="color:var(--g)">GUI</b>
+      <span class="brand-sub">REAL NMAP · NO SIMULATION</span>
+    </div>
+  </div>
+
+  <div id="target-wrap">
+    <label>TARGET ▶</label>
+    <input id="target" type="text" placeholder="192.168.1.1  ·  10.0.0.0/24  ·  example.com" spellcheck="false">
+  </div>
+
+  <select id="profile">
+    <option value="quick">Hızlı Tarama (-T4 -F)</option>
+    <option value="standard" selected>Standart (-T4 -sV -sC)</option>
+    <option value="intense">Yoğun (-T4 -A)</option>
+    <option value="intense_udp">Yoğun + UDP</option>
+    <option value="ping">Ping Sweep (-sn)</option>
+    <option value="vuln">Zafiyet Script (--script=vuln)</option>
+    <option value="os">OS Tespiti (-O)</option>
+    <option value="version">Versiyon (-sV)</option>
+    <option value="full">Tüm Portlar (-p-)</option>
+    <option value="aggressive">Agresif (-A -sS) [root]</option>
+    <option value="stealth">Gizli SYN (-sS) [root]</option>
+    <option value="scripts">NSE default+safe</option>
+    <option value="manual">★ Manuel Komut</option>
+  </select>
+
+  <div id="extra-wrap">
+    <label>+ARGS</label>
+    <input id="extra-args" type="text" placeholder="--script=http-title -p80,443">
+  </div>
+
+  <button class="btn" id="btn-scan" onclick="startScan()">▶ TARA</button>
+  <button class="btn" id="btn-stop" onclick="stopScan()">■ DURDUR</button>
+
+  <div class="top-chip" id="nmap-status-chip">nmap: <b id="nmap-ver">kontrol…</b></div>
+  <div class="top-chip">IP: <b id="local-ip">—</b></div>
+</div>
+
+<!-- MANUAL BAR -->
+<div id="manual-bar">
+  <label>$ nmap</label>
+  <input id="manual-cmd" type="text" placeholder="-sV -p 22,80,443 --script=http-title 192.168.1.1">
+  <span id="manual-hint">nmap kelimesini yazma, otomatik eklenir. Hedefi de buraya yaz.</span>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- LEFT -->
+  <div id="left">
+    <div class="panel-hdr">TARAMA GEÇMİŞİ</div>
+    <div id="job-list"></div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center">
+
+    <!-- CMD Preview -->
+    <div id="cmd-preview"></div>
+
+    <!-- Summary -->
+    <div id="summary" style="display:none;flex-direction:row">
+      <div class="sm"><div class="sm-v g" id="sm-open">0</div><div class="sm-l">AÇIK PORT</div></div>
+      <div class="sm"><div class="sm-v"   id="sm-hosts">0</div><div class="sm-l">HOST</div></div>
+      <div class="sm"><div class="sm-v y" id="sm-scripts">0</div><div class="sm-l">SCRIPT</div></div>
+      <div class="sm"><div class="sm-v r" id="sm-closed">0</div><div class="sm-l">KAPALI</div></div>
+      <div class="sm"><div class="sm-v o" id="sm-filtered">0</div><div class="sm-l">FİLTRELİ</div></div>
+      <div class="sm" style="min-width:300px;align-items:flex-start">
+        <div class="sm-v" id="sm-os" style="font-size:13px;color:var(--t);font-weight:600">—</div>
+        <div class="sm-l">OS TAHMİNİ</div>
+      </div>
+      <div class="sm" style="min-width:120px;align-items:flex-start">
+        <div class="sm-v" id="sm-elapsed" style="font-size:14px;color:var(--t2)">—</div>
+        <div class="sm-l">SÜRE</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div id="tabs">
+      <div class="tab on" data-t="term" onclick="tab(this,'term')">📟 Terminal</div>
+      <div class="tab"    data-t="ports" onclick="tab(this,'ports')">🔌 Portlar <span class="badge" id="b-ports">0</span></div>
+      <div class="tab"    data-t="hosts" onclick="tab(this,'hosts')">💻 Hostlar <span class="badge" id="b-hosts">0</span></div>
+      <div class="tab"    data-t="scripts" onclick="tab(this,'scripts')">📜 Scriptler <span class="badge orange" id="b-scripts">0</span></div>
+      <div class="tab"    data-t="topo" onclick="tab(this,'topo')">🗺 Topoloji</div>
+    </div>
+
+    <!-- PROG -->
+    <div id="prog-bar-wrap">
+      <div id="prog-track"><div id="prog-fill" style="width:0%"></div></div>
+      <div id="prog-txt">Başlatılıyor…</div>
+    </div>
+
+    <!-- PANELS -->
+    <div id="panels">
+
+      <div class="pnl on" id="pnl-term">
+        <div id="terminal"><span class="tl-sys">NmapGUI Pro — Gerçek nmap çıktısı, sıfır simülasyon.
+Hedef girin ve ▶ TARA butonuna basın.
+</span></div>
+      </div>
+
+      <div class="pnl" id="pnl-ports">
+        <div class="empty" id="pe"><div class="empty-icon">🔌</div><div class="empty-txt">Henüz tarama yok</div></div>
+        <div id="ports-content" style="display:none;padding:10px 14px;overflow:auto;flex:1"></div>
+      </div>
+
+      <div class="pnl" id="pnl-hosts">
+        <div class="empty" id="he"><div class="empty-icon">💻</div><div class="empty-txt">Henüz host yok</div></div>
+        <div id="hosts-content" style="display:none;padding:10px 14px;overflow:auto;flex:1"></div>
+      </div>
+
+      <div class="pnl" id="pnl-scripts">
+        <div class="empty" id="se"><div class="empty-icon">📜</div><div class="empty-txt">Script çıktısı yok</div></div>
+        <div id="scripts-content" style="display:none;padding:10px 14px;overflow:auto;flex:1"></div>
+      </div>
+
+      <div class="pnl" id="pnl-topo">
+        <div id="topo-empty"><div style="font-size:44px;opacity:.2">🗺</div><div style="font-size:15px">Topoloji için tarama tamamlanmalı</div></div>
+        <svg id="topo-svg" xmlns="http://www.w3.org/2000/svg" style="display:none"></svg>
+      </div>
+
+    </div><!-- /panels -->
+  </div><!-- /center -->
+</div><!-- /main -->
+
+<!-- STATUS BAR -->
+<div id="statusbar">
+  <div style="display:flex;align-items:center;gap:6px">
+    <div class="sb-dot gray" id="conn-dot"></div>
+    <span id="conn-txt">Backend kontrol ediliyor…</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;margin-left:12px" id="scan-status-wrap" style="display:none">
+    <div class="sb-dot yellow" id="scan-dot" style="display:none"></div>
+    <span id="scan-status-txt"></span>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:16px">
+    <span id="sb-pid" style="color:var(--t3)"></span>
+    <span id="sb-time" style="color:var(--t3)"></span>
+  </div>
+</div>
+
+</div><!-- /shell -->
+<script>
+const API = 'http://localhost:5000/api';
+let curJob = null;
+let sseSource = null;
+let pollTimer = null;
+let lastLineCount = 0;
+
+// ── Init ──────────────────────────────────────────────────────────────────
+addEventListener('DOMContentLoaded', () => {
+  checkBackend();
+  setInterval(() => { document.getElementById('sb-time').textContent = new Date().toLocaleTimeString('tr-TR'); }, 1000);
+  document.getElementById('target').addEventListener('keydown', e => { if(e.key==='Enter') startScan(); });
+  document.getElementById('manual-cmd').addEventListener('keydown', e => { if(e.key==='Enter') startScan(); });
+  document.getElementById('profile').addEventListener('change', updateProfileUI);
+  document.getElementById('target').addEventListener('input', updateCmdPreview);
+  document.getElementById('profile').addEventListener('change', updateCmdPreview);
+  document.getElementById('extra-args').addEventListener('input', updateCmdPreview);
+  document.getElementById('manual-cmd').addEventListener('input', updateCmdPreview);
+  updateCmdPreview();
+});
+
+// ── Backend kontrolü ──────────────────────────────────────────────────────
+async function checkBackend() {
+  try {
+    const r = await fetch(`${API}/info`, {signal: AbortSignal.timeout(3000)});
+    const d = await r.json();
+    setConn(d.nmap_ok ? 'green' : 'red',
+      d.nmap_ok ? `Backend bağlı · ${d.nmap_version}` : `Backend bağlı ama: ${d.nmap_version}`);
+    document.getElementById('nmap-ver').textContent = d.nmap_ok ? '✓ ' + d.nmap_version.split(' ')[2] : '✗ KURULU DEĞİL';
+    document.getElementById('nmap-ver').style.color = d.nmap_ok ? 'var(--g)' : 'var(--r)';
+    document.getElementById('local-ip').textContent = d.local_ip || '—';
+  } catch(e) {
+    setConn('red', 'Backend bağlı değil → python nmap_backend.py');
+    document.getElementById('nmap-ver').textContent = '✗';
+    document.getElementById('nmap-ver').style.color = 'var(--r)';
+  }
+}
+
+function setConn(color, txt) {
+  const dot = document.getElementById('conn-dot');
+  dot.className = 'sb-dot ' + color;
+  document.getElementById('conn-txt').textContent = txt;
+}
+
+// ── Tab ───────────────────────────────────────────────────────────────────
+function tab(el, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.pnl').forEach(p => p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('pnl-' + id).classList.add('on');
+  if(id === 'topo' && curJob?.result) drawTopo(curJob.result);
+}
+
+// ── Profile UI ────────────────────────────────────────────────────────────
+function updateProfileUI() {
+  const p = document.getElementById('profile').value;
+  const mb = document.getElementById('manual-bar');
+  mb.style.display = p === 'manual' ? 'flex' : 'none';
+}
+
+// ── CMD Preview ───────────────────────────────────────────────────────────
+function updateCmdPreview() {
+  const target = document.getElementById('target').value.trim();
+  const profile = document.getElementById('profile').value;
+  const extra = document.getElementById('extra-args').value.trim();
+  const manual = document.getElementById('manual-cmd').value.trim();
+  const prev = document.getElementById('cmd-preview');
+
+  const profileArgs = {
+    quick: '-T4 -F', standard: '-T4 -sV -sC --open',
+    intense: '-T4 -A -v', intense_udp: '-sS -sU -T4 -A -v',
+    ping: '-sn', vuln: '-T4 --script=vuln', os: '-O -T4',
+    version: '-sV -T4', full: '-p- -T4 -sV',
+    aggressive: '-T4 -A -sS -v', stealth: '-sS -T2 -f',
+    scripts: '-T4 --script=default,safe', manual: '',
+  };
+
+  let cmd;
+  if(profile === 'manual') {
+    cmd = `nmap ${manual || '&lt;argümanlar ve hedef&gt;'}`;
+  } else {
+    const args = [profileArgs[profile], extra, target || '&lt;hedef&gt;', '-oX /tmp/nmap_*.xml -v'].filter(Boolean).join(' ');
+    cmd = `nmap ${args}`;
+  }
+  prev.innerHTML = `<b>$ ${cmd}</b>`;
+  prev.style.display = 'block';
+}
+
+// ── Start Scan ────────────────────────────────────────────────────────────
+async function startScan() {
+  const target  = document.getElementById('target').value.trim();
+  const profile = document.getElementById('profile').value;
+  const extra   = document.getElementById('extra-args').value.trim();
+  const manual  = document.getElementById('manual-cmd').value.trim();
+
+  if(profile !== 'manual' && !target) { alert('Hedef girin!'); return; }
+  if(profile === 'manual' && !manual) { alert('Manuel komut girin!'); return; }
+
+  // Önceki SSE kapat
+  if(sseSource) { sseSource.close(); sseSource = null; }
+  if(pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+
+  resetPanels();
+  tlog('Tarama başlatılıyor…', 'sys');
+
+  try {
+    const r = await fetch(`${API}/scan/start`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({target, profile, extra_args: extra, manual_args: manual})
+    });
+    const d = await r.json();
+    if(d.error) { tlog('HATA: ' + d.error, 'err'); return; }
+
+    curJob = {id: d.job_id, target, profile, status: 'running', result: null};
+    document.getElementById('btn-scan').disabled = true;
+    document.getElementById('btn-stop').style.display = 'inline-block';
+    document.getElementById('prog-bar-wrap').style.display = 'block';
+    document.getElementById('scan-dot').style.display = 'block';
+    document.getElementById('scan-status-txt').textContent = 'Taranıyor…';
+
+    addJobItem(d.job_id, target, profile, 'running');
+    startSSE(d.job_id);
+    pollTimer = setInterval(() => pollJob(d.job_id), 1000);
+    tlog(`Komut: $ ${curJob.cmd_str || '…'}`, 'cmd');
+  } catch(e) {
+    tlog('Backend bağlantı hatası: ' + e.message, 'err');
+    tlog('Çözüm: python nmap_backend.py', 'warn');
+  }
+}
+
+// ── SSE — gerçek zamanlı nmap çıktısı ─────────────────────────────────────
+function startSSE(jobId) {
+  sseSource = new EventSource(`${API}/scan/${jobId}/output`);
+  sseSource.onmessage = (e) => {
+    const d = JSON.parse(e.data);
+    if(d.line !== undefined) {
+      classifyAndLog(d.line);
+    }
+    if(d.done) {
+      sseSource.close();
+      sseSource = null;
+    }
+  };
+  sseSource.onerror = () => { sseSource?.close(); sseSource = null; };
+}
+
+function classifyAndLog(line) {
+  // Nmap çıktısını renklendirerek terminale yaz
+  if(!line) return;
+  let cls = 'tl-sys';
+  if(/^\s*\d+\/tcp\s+open/.test(line))   cls = 'tl-open';
+  else if(/^\s*\d+\/tcp\s+closed/.test(line)) cls = 'tl-closed';
+  else if(/^\s*\d+\/tcp\s+filtered/.test(line)) cls = 'tl-warn';
+  else if(/^\s*\d+\/udp/.test(line))     cls = 'tl-open';
+  else if(/^\|/.test(line))              cls = 'tl-script';
+  else if(/OS:|Running:|OS CPE:|Aggressive/.test(line)) cls = 'tl-os';
+  else if(/^Nmap scan report/.test(line)) cls = 'tl-info';
+  else if(/^Starting Nmap|^Nmap done/.test(line)) cls = 'tl-cmd';
+  else if(/WARNING|WARN/.test(line))     cls = 'tl-warn';
+  else if(/error|Error|ERROR/.test(line)) cls = 'tl-err';
+  else if(/^PORT\s+STATE|^---/.test(line)) cls = 'tl-sep';
+  tlog(line, cls.replace('tl-',''));
+}
+
+function tlog(text, cls='sys') {
+  const term = document.getElementById('terminal');
+  const div = document.createElement('div');
+  div.className = 'tl-' + cls;
+  div.textContent = text;
+  term.appendChild(div);
+  term.scrollTop = term.scrollHeight;
+}
+
+// ── Poll job ──────────────────────────────────────────────────────────────
+async function pollJob(jobId) {
+  try {
+    const r = await fetch(`${API}/scan/${jobId}`);
+    const d = await r.json();
+    if(!d) return;
+
+    // Progress
+    if(d.progress > 0) {
+      document.getElementById('prog-fill').style.width = d.progress + '%';
+      document.getElementById('prog-txt').textContent = `${d.status} — %${d.progress.toFixed(1)}`;
+    }
+
+    if(d.pid) document.getElementById('sb-pid').textContent = `PID: ${d.pid}`;
+
+    if(d.status === 'done' || d.status === 'error' || d.status === 'stopped') {
+      clearInterval(pollTimer); pollTimer = null;
+      finishScan(d);
+      updateJobItem(jobId, d.status);
+    }
+
+    curJob = {...curJob, ...d};
+  } catch(e) {}
+}
+
+function finishScan(d) {
+  document.getElementById('btn-scan').disabled = false;
+  document.getElementById('btn-stop').style.display = 'none';
+  document.getElementById('scan-dot').style.display = 'none';
+  document.getElementById('prog-fill').style.width = '100%';
+
+  if(d.status === 'done') {
+    document.getElementById('prog-txt').textContent = '✓ Tamamlandı';
+    document.getElementById('scan-status-txt').textContent = '';
+    tlog('', 'sys');
+    tlog('─'.repeat(60), 'sep');
+    tlog('✓ Tarama tamamlandı. Sonuçlar işleniyor…', 'cmd');
+    if(d.result) renderResult(d.result, d);
+  } else if(d.status === 'stopped') {
+    tlog('■ Tarama kullanıcı tarafından durduruldu.', 'warn');
+    document.getElementById('prog-txt').textContent = 'Durduruldu';
+  } else {
+    tlog('✗ Hata: ' + (d.error || 'bilinmeyen hata'), 'err');
+    document.getElementById('prog-txt').textContent = 'Hata: ' + d.error;
+  }
+}
+
+// ── Stop ──────────────────────────────────────────────────────────────────
+async function stopScan() {
+  if(!curJob?.id) return;
+  await fetch(`${API}/scan/${curJob.id}/stop`, {method:'POST'}).catch(()=>{});
+}
+
+// ── Render result ─────────────────────────────────────────────────────────
+function renderResult(result, job) {
+  const hosts = result.hosts || [];
+  const stats = result.stats || {};
+
+  // Sayılar
+  let totalOpen=0, totalClosed=0, totalFiltered=0, totalScripts=0;
+  hosts.forEach(h => {
+    h.ports?.forEach(p => {
+      if(p.state==='open') totalOpen++;
+      else if(p.state==='closed') totalClosed++;
+      else if(p.state==='filtered') totalFiltered++;
+      const sc = Object.keys(p.scripts||{}).length;
+      totalScripts += sc;
+    });
+    totalScripts += Object.keys(h.scripts||{}).length;
+  });
+
+  // Summary bar
+  const sumEl = document.getElementById('summary');
+  sumEl.style.display = 'flex';
+  document.getElementById('sm-open').textContent     = totalOpen;
+  document.getElementById('sm-hosts').textContent    = hosts.length;
+  document.getElementById('sm-scripts').textContent  = totalScripts;
+  document.getElementById('sm-closed').textContent   = totalClosed;
+  document.getElementById('sm-filtered').textContent = totalFiltered;
+  document.getElementById('sm-elapsed').textContent  = stats.elapsed ? stats.elapsed+'s' : '—';
+  const firstOs = hosts[0]?.os_matches?.[0]?.name;
+  document.getElementById('sm-os').textContent = firstOs || '—';
+
+  // Badges
+  document.getElementById('b-ports').textContent   = totalOpen;
+  document.getElementById('b-hosts').textContent   = hosts.length;
+  document.getElementById('b-scripts').textContent = totalScripts;
+
+  renderPortsTab(hosts);
+  renderHostsTab(hosts);
+  renderScriptsTab(hosts);
+  drawTopo(result);
+}
+
+// ── Ports Tab ─────────────────────────────────────────────────────────────
+function renderPortsTab(hosts) {
+  const el = document.getElementById('ports-content');
+  document.getElementById('pe').style.display = 'none';
+  el.style.display = 'block';
+  let html = '';
+  hosts.forEach(h => {
+    const ports = h.ports || [];
+    if(!ports.length) return;
+    html += `<div class="sec-title">${esc(h.ip)}${h.hostname ? ' · ' + esc(h.hostname) : ''} — ${ports.filter(p=>p.state==='open').length} açık port</div>`;
+    html += `<table><thead><tr>
+      <th>Port</th><th>Protokol</th><th>Durum</th><th>Servis</th><th>Ürün / Versiyon</th><th>NSE Script Çıktısı</th>
+    </tr></thead><tbody>`;
+    ports.forEach(p => {
+      const stateClass = p.state === 'open' ? 'p-open' : p.state === 'closed' ? 'p-closed' : 'p-filtered';
+      const verInfo = [p.product, p.version, p.extrainfo].filter(Boolean).join(' ');
+      const scripts = Object.entries(p.scripts || {}).map(([id,out]) =>
+        `<span style="color:var(--m);font-weight:bold">${esc(id)}:</span>\n${esc(out)}`).join('\n');
+      html += `<tr>
+        <td><span class="p-port">${p.port}/${p.proto}</span></td>
+        <td style="color:var(--t3)">${p.proto}</td>
+        <td><span class="${stateClass}">${p.state}${p.reason?' ('+p.reason+')':''}</span></td>
+        <td><span class="p-svc">${esc(p.service||'?')}</span></td>
+        <td><span class="p-ver">${esc(verInfo||'—')}</span></td>
+        <td><span class="p-script">${scripts || '<span style="color:var(--t3)">—</span>'}</span></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+  });
+  if(!html) html = '<div style="color:var(--t3);padding:20px">Hiç port bulunamadı.</div>';
+  el.innerHTML = html;
+}
+
+// ── Hosts Tab ─────────────────────────────────────────────────────────────
+function renderHostsTab(hosts) {
+  const el = document.getElementById('hosts-content');
+  if(!hosts.length) return;
+  document.getElementById('he').style.display = 'none';
+  el.style.display = 'block';
+  el.innerHTML = hosts.map(h => {
+    const openPorts = (h.ports||[]).filter(p=>p.state==='open');
+    const os = h.os_matches?.[0];
+    return `<div class="host-card">
+      <div class="hc-header">
+        <div>
+          <div class="hc-ip">${esc(h.ip)}</div>
+          ${h.hostname ? `<div class="hc-hn">🔤 ${esc(h.hostname)}</div>` : ''}
+          ${os ? `<div class="hc-os">💻 ${esc(os.name)} (${os.accuracy}%)</div>` : ''}
+          ${h.mac ? `<div style="color:var(--t3);font-size:11px;margin-top:4px">MAC: ${esc(h.mac)} ${h.vendor ? '· '+esc(h.vendor) : ''}</div>` : ''}
+        </div>
+        <div style="text-align:right">
+          <div style="color:var(--g);font-family:var(--ui);font-size:28px;font-weight:900">${openPorts.length}</div>
+          <div style="color:var(--t3);font-size:10px">AÇIK PORT</div>
+        </div>
+      </div>
+      <div class="hc-meta">
+        <span class="hc-chip">Durum: ${esc(h.status)}</span>
+        ${openPorts.slice(0,15).map(p =>
+          `<span class="hc-chip" style="color:var(--g)">:${p.port} ${esc(p.service||'')}</span>`
+        ).join('')}
+        ${openPorts.length > 15 ? `<span class="hc-chip">+${openPorts.length-15} daha</span>` : ''}
+      </div>
+      ${Object.keys(h.scripts||{}).length ? `
+        <div style="margin-top:10px">
+          ${Object.entries(h.scripts).map(([id,out]) => `
+            <div style="margin-bottom:6px">
+              <span style="color:var(--m);font-weight:bold;font-size:12px">[${esc(id)}]</span>
+              <pre style="color:var(--t);font-size:11px;background:var(--bg);padding:6px 8px;border-radius:2px;border:1px solid var(--line);white-space:pre-wrap;word-break:break-word;margin-top:2px">${esc(out)}</pre>
+            </div>`).join('')}
+        </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── Scripts Tab ───────────────────────────────────────────────────────────
+function renderScriptsTab(hosts) {
+  const items = [];
+  hosts.forEach(h => {
+    Object.entries(h.scripts||{}).forEach(([id,out]) => {
+      items.push({id, out, ref: h.ip, label: 'host'});
+    });
+    (h.ports||[]).forEach(p => {
+      Object.entries(p.scripts||{}).forEach(([id,out]) => {
+        items.push({id, out, ref: `${h.ip}:${p.port}/${p.proto} (${p.service||'?'})`, label:'port'});
+      });
+    });
+  });
+
+  const el = document.getElementById('scripts-content');
+  if(!items.length) return;
+  document.getElementById('se').style.display = 'none';
+  el.style.display = 'block';
+  el.innerHTML = items.map(it => `
+    <div class="script-card">
+      <div class="sc-title">${esc(it.id)}</div>
+      <div class="sc-host">${esc(it.label)}: ${esc(it.ref)}</div>
+      <div class="sc-output">${esc(it.out)}</div>
+    </div>`).join('');
+}
+
+// ── Topology — Tüm tarama verisi, zoom/pan, interaktif ───────────────────
+// Tooltip DOM (bir kez oluştur)
+let _topoTip = null;
+function getTooltip() {
+  if(!_topoTip) {
+    _topoTip = document.createElement('div');
+    _topoTip.id = 'topo-tooltip';
+    Object.assign(_topoTip.style, {
+      position:'fixed', display:'none', background:'#0d1117',
+      border:'1px solid #1c2a38', borderRadius:'4px', padding:'10px 14px',
+      fontFamily:'Inconsolata,monospace', fontSize:'11px', color:'#8baac4',
+      pointerEvents:'none', zIndex:'9999', maxWidth:'320px',
+      boxShadow:'0 4px 20px #000a', lineHeight:'1.7',
+    });
+    document.body.appendChild(_topoTip);
+  }
+  return _topoTip;
+}
+
+function drawTopo(result) {
+  const svgEl  = document.getElementById('topo-svg');
+  const emptyEl= document.getElementById('topo-empty');
+  const hosts  = result?.hosts || [];
+  const stats  = result?.stats || {};
+  if(!hosts.length) return;
+
+  svgEl.style.display = 'block';
+  emptyEl.style.display = 'none';
+  svgEl.innerHTML = '';
+
+  const W = svgEl.clientWidth  || 900;
+  const H = svgEl.clientHeight || 560;
+  const ns = 'http://www.w3.org/2000/svg';
+
+  // ── SVG helpers ──────────────────────────────────────────────────────────
+  const mk = (tag, attrs={}, parent=null) => {
+    const el = document.createElementNS(ns, tag);
+    for(const [k,v] of Object.entries(attrs)) el.setAttribute(k, v);
+    if(parent) parent.appendChild(el);
+    return el;
+  };
+  const txt = (parent, x, y, s, attrs={}) => {
+    const el = mk('text', {x, y, 'text-anchor':'middle', 'dominant-baseline':'middle', ...attrs}, parent);
+    el.textContent = s; return el;
+  };
+
+  // ── Root: defs + grid layer + pan/zoom group ──────────────────────────────
+  const defs = mk('defs', {}, svgEl);
+  // Arrow marker
+  const marker = mk('marker', {id:'arr', markerWidth:'8', markerHeight:'8',
+    refX:'6', refY:'3', orient:'auto'}, defs);
+  mk('path', {d:'M0,0 L0,6 L8,3 z', fill:'#1a3a5c'}, marker);
+  // Glow filters
+  ['cyan','green','orange','red'].forEach((name,i) => {
+    const colors = ['#00e5ff','#00ff7f','#ff8800','#ff2244'];
+    const f = mk('filter', {id:`glow-${name}`, x:'-50%', y:'-50%', width:'200%', height:'200%'}, defs);
+    const fe = mk('feGaussianBlur', {stdDeviation:'3', result:'blur'}, f);
+    const merge = mk('feMerge', {}, f);
+    mk('feMergeNode', {in:'blur'}, merge);
+    mk('feMergeNode', {in:'SourceGraphic'}, merge);
+  });
+
+  // Grid layer (static, behind everything)
+  const gridG = mk('g', {'class':'grid-layer'}, svgEl);
+  for(let x=0;x<W;x+=40) mk('line',{x1:x,y1:0,x2:x,y2:H,stroke:'#0a1620','stroke-width':'.5'}, gridG);
+  for(let y=0;y<H;y+=40) mk('line',{x1:0,y1:y,x2:W,y2:y,stroke:'#0a1620','stroke-width':'.5'}, gridG);
+
+  // Main pan/zoom group
+  const root = mk('g', {id:'topo-root'}, svgEl);
+  const edgeG = mk('g', {}, root);  // edges behind nodes
+  const nodeG = mk('g', {}, root);  // nodes on top
+
+  // ── Pan / Zoom ────────────────────────────────────────────────────────────
+  let vx=0, vy=0, scale=1, dragging=false, dragStart={x:0,y:0}, vStart={x:0,y:0};
+
+  function applyTransform() {
+    root.setAttribute('transform', `translate(${vx},${vy}) scale(${scale})`);
+  }
+
+  svgEl.addEventListener('wheel', e => {
+    e.preventDefault();
+    const rect = svgEl.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const delta = e.deltaY > 0 ? 0.85 : 1.18;
+    const newScale = Math.min(4, Math.max(0.15, scale * delta));
+    vx = mx - (mx - vx) * (newScale / scale);
+    vy = my - (my - vy) * (newScale / scale);
+    scale = newScale;
+    applyTransform();
+  }, {passive:false});
+
+  svgEl.addEventListener('mousedown', e => {
+    if(e.button !== 0) return;
+    dragging = true;
+    dragStart = {x: e.clientX, y: e.clientY};
+    vStart = {x: vx, y: vy};
+    svgEl.style.cursor = 'grabbing';
+  });
+  window.addEventListener('mousemove', e => {
+    if(!dragging) return;
+    vx = vStart.x + (e.clientX - dragStart.x);
+    vy = vStart.y + (e.clientY - dragStart.y);
+    applyTransform();
+  });
+  window.addEventListener('mouseup', () => { dragging=false; svgEl.style.cursor='grab'; });
+  svgEl.style.cursor = 'grab';
+
+  // ── Subnet grouping ───────────────────────────────────────────────────────
+  // Grup hostları /24 subnet'e göre
+  const subnets = {};
+  hosts.forEach(h => {
+    const parts = h.ip.split('.');
+    const sub = parts.slice(0,3).join('.');
+    if(!subnets[sub]) subnets[sub] = [];
+    subnets[sub].push(h);
+  });
+  const subnetKeys = Object.keys(subnets);
+
+  // ── Layout hesaplama ──────────────────────────────────────────────────────
+  // Scanner node ortada-solda, her subnet bir küme
+  const CX = W / 2, CY = H / 2;
+
+  // Scanner (local) node pozisyonu
+  const SCAN_X = 100, SCAN_Y = CY;
+
+  // Subnet küme merkezleri — scanner etrafında daire
+  const subnetPositions = {};
+  const subnetR = Math.min(220, (Math.min(W,H)*0.38));
+  subnetKeys.forEach((sub, si) => {
+    const angle = subnetKeys.length === 1
+      ? 0
+      : (si / subnetKeys.length) * Math.PI * 2 - Math.PI / 2;
+    subnetPositions[sub] = {
+      cx: SCAN_X + 260 + Math.cos(angle) * subnetR,
+      cy: CY     +        Math.sin(angle) * subnetR * 0.7,
+    };
+  });
+
+  // Her host kendi subnet kümesi içinde daire şeklinde
+  const hostPositions = {};
+  hosts.forEach(h => {
+    const parts = h.ip.split('.');
+    const sub = parts.slice(0,3).join('.');
+    const peers = subnets[sub];
+    const idx   = peers.indexOf(h);
+    const sc    = subnetPositions[sub];
+    const hostR = peers.length === 1 ? 0 : Math.min(90, 30 + peers.length * 14);
+    const angle = peers.length === 1 ? 0 : (idx / peers.length) * Math.PI * 2 - Math.PI/2;
+    hostPositions[h.ip] = {
+      x: sc.cx + Math.cos(angle) * hostR,
+      y: sc.cy + Math.sin(angle) * hostR,
+    };
+  });
+
+  // ── Draw edges: scanner → subnet gateway → hosts ──────────────────────────
+  const drawEdge = (x1,y1,x2,y2,color='#1a3a5c',dash='6,4',w='1.5') => {
+    mk('line', {x1,y1,x2,y2, stroke:color, 'stroke-width':w,
+      'stroke-dasharray':dash, opacity:'0.7'}, edgeG);
+  };
+
+  // Scanner → each subnet
+  subnetKeys.forEach(sub => {
+    const sc = subnetPositions[sub];
+    drawEdge(SCAN_X+30, SCAN_Y, sc.cx, sc.cy, '#0055aa', '8,5', '1.5');
+  });
+
+  // subnet gateway circle (visual only) + host edges
+  hosts.forEach(h => {
+    const parts = h.ip.split('.');
+    const sub = parts.slice(0,3).join('.');
+    const sc = subnetPositions[sub];
+    const hp = hostPositions[h.ip];
+    const openPorts = (h.ports||[]).filter(p=>p.state==='open');
+    const col = openPorts.length > 0 ? '#00e5ff' : '#2a4055';
+    drawEdge(sc.cx, sc.cy, hp.x, hp.y, col, '4,3', '1.2');
+  });
+
+  // Port edges (host → open ports)
+  hosts.forEach(h => {
+    const hp = hostPositions[h.ip];
+    const openPorts = (h.ports||[]).filter(p=>p.state==='open');
+    // max 12 port göster (daha fazlası karmaşık olur)
+    openPorts.slice(0,12).forEach((p, pi) => {
+      const angle = (pi / Math.max(openPorts.slice(0,12).length,1)) * Math.PI * 2 - Math.PI/2;
+      const pr = 58 + (openPorts.length > 6 ? 8 : 0);
+      const px2 = hp.x + Math.cos(angle) * pr;
+      const py2 = hp.y + Math.sin(angle) * pr;
+      drawEdge(hp.x, hp.y, px2, py2, '#003322', '2,3', '0.8');
+    });
+  });
+
+  // ── Draw nodes ────────────────────────────────────────────────────────────
+  const tip = getTooltip();
+
+  function makeNode(parent, x, y, opts) {
+    // opts: { r, bg, stroke, filter, icon, label, sub2, clickCb, tipHtml }
+    const g = mk('g', {transform:`translate(${x},${y})`, style:'cursor:pointer'}, parent);
+    const r = opts.r || 26;
+
+    // glow ring
+    mk('circle', {cx:0,cy:0,r:r+8, fill:'none', stroke:opts.stroke,
+      'stroke-width':'0.6', opacity:'0.25'}, g);
+    // body
+    mk('circle', {cx:0,cy:0,r,
+      fill: opts.bg||'#060d16', stroke: opts.stroke||'#1a3a5c',
+      'stroke-width':'1.8',
+      filter: opts.filter ? `url(#glow-${opts.filter})` : ''}, g);
+    // icon
+    if(opts.icon) {
+      const ic = mk('text', {x:0, y: opts.label ? -5 : 0,
+        'text-anchor':'middle', 'dominant-baseline':'middle',
+        'font-size': opts.r > 30 ? '18' : '14'}, g);
+      ic.textContent = opts.icon;
+    }
+    // label
+    if(opts.label) {
+      const lb = mk('text', {x:0, y: opts.icon ? 9 : 0,
+        'text-anchor':'middle', 'dominant-baseline':'middle',
+        'font-size':'8', fill: opts.stroke||'#8baac4',
+        'font-family':'Inconsolata'}, g);
+      lb.textContent = opts.label.length > 15 ? opts.label.slice(-14) : opts.label;
+    }
+    // sub label (hostname / port count)
+    if(opts.sub2) {
+      const sl = mk('text', {x:0, y:r+10,
+        'text-anchor':'middle', 'dominant-baseline':'middle',
+        'font-size':'7.5', fill:'#2a4055', 'font-family':'Inconsolata'}, g);
+      sl.textContent = opts.sub2.length > 18 ? opts.sub2.slice(0,17)+'…' : opts.sub2;
+    }
+    // Tooltip
+    if(opts.tipHtml) {
+      g.addEventListener('mouseenter', e => {
+        tip.innerHTML = opts.tipHtml;
+        tip.style.display = 'block';
+      });
+      g.addEventListener('mousemove', e => {
+        tip.style.left = (e.clientX + 14) + 'px';
+        tip.style.top  = (e.clientY - 10) + 'px';
+      });
+      g.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+    }
+    if(opts.clickCb) g.addEventListener('click', opts.clickCb);
+    return g;
+  }
+
+  // ── Port nodes ────────────────────────────────────────────────────────────
+  hosts.forEach(h => {
+    const hp = hostPositions[h.ip];
+    const openPorts = (h.ports||[]).filter(p=>p.state==='open');
+    openPorts.slice(0,12).forEach((p, pi) => {
+      const angle = (pi / Math.max(openPorts.slice(0,12).length,1)) * Math.PI * 2 - Math.PI/2;
+      const pr = 58 + (openPorts.length > 6 ? 8 : 0);
+      const px2 = hp.x + Math.cos(angle) * pr;
+      const py2 = hp.y + Math.sin(angle) * pr;
+
+      // Servis rengini belirle
+      const webPorts = [80,443,8080,8443,8000,8888];
+      const dbPorts  = [3306,5432,1433,27017,6379,9200,11211];
+      const sshPorts = [22,23,21];
+      let portColor='#00ff7f', portFilter='green';
+      if(webPorts.includes(p.port))  { portColor='#00e5ff'; portFilter='cyan'; }
+      else if(dbPorts.includes(p.port)) { portColor='#ff8800'; portFilter='orange'; }
+      else if(sshPorts.includes(p.port)){ portColor='#cc44ff'; portFilter='cyan'; }
+
+      const verStr = [p.product, p.version].filter(Boolean).join(' ');
+      const tipHtml = `
+        <div style="color:#00ff7f;font-weight:bold;font-size:13px">:${p.port}/${p.proto}</div>
+        <div style="color:#00e5ff">${p.service||'?'}</div>
+        ${verStr ? `<div style="color:#4a6a88">${esc(verStr)}</div>` : ''}
+        ${p.reason ? `<div style="color:#2a4055">reason: ${esc(p.reason)}</div>` : ''}
+        ${Object.keys(p.scripts||{}).length ? `<div style="color:#cc44ff;margin-top:4px">${Object.keys(p.scripts).join(', ')}</div>` : ''}
+      `;
+
+      makeNode(nodeG, px2, py2, {
+        r: 13,
+        bg: '#001a0e',
+        stroke: portColor,
+        filter: portFilter,
+        label: String(p.port),
+        tipHtml,
+      });
+    });
+
+    // Fazla port varsa +N badge
+    if(openPorts.length > 12) {
+      const angle = -Math.PI/4;
+      const pr = 58;
+      const px2 = hp.x + Math.cos(angle) * pr;
+      const py2 = hp.y + Math.sin(angle) * pr;
+      makeNode(nodeG, px2, py2, {
+        r:13, bg:'#1a1a00', stroke:'#ffdd00',
+        label:`+${openPorts.length-12}`,
+        tipHtml: `<div style="color:#ffdd00">${openPorts.length-12} port daha var</div>
+          ${openPorts.slice(12).map(pp=>`<div>:${pp.port} ${pp.service||''}</div>`).join('')}`,
+      });
+    }
+  });
+
+  // ── Host nodes ────────────────────────────────────────────────────────────
+  hosts.forEach(h => {
+    const hp = hostPositions[h.ip];
+    const openPorts = (h.ports||[]).filter(p=>p.state==='open');
+    const closedPorts   = (h.ports||[]).filter(p=>p.state==='closed').length;
+    const filteredPorts = (h.ports||[]).filter(p=>p.state==='filtered').length;
+    const os = h.os_matches?.[0];
+    const osName = os?.name || '';
+    const icon = osName.toLowerCase().includes('windows') ? '🪟'
+               : osName.toLowerCase().includes('linux')   ? '🐧'
+               : osName.toLowerCase().includes('macos')||osName.toLowerCase().includes('darwin') ? '🍎'
+               : osName.toLowerCase().includes('cisco')||osName.toLowerCase().includes('ios') ? '🔷'
+               : osName.toLowerCase().includes('freebsd') ? '😈'
+               : h.status === 'up' ? '🖥' : '❓';
+
+    const hostColor = openPorts.length > 0 ? '#00e5ff' : '#2a4055';
+    const scriptCount = openPorts.reduce((a,p)=>a+Object.keys(p.scripts||{}).length, 0)
+                       + Object.keys(h.scripts||{}).length;
+
+    // Tooltip içeriği
+    const portLines = openPorts.slice(0,20).map(p => {
+      const ver = [p.product, p.version].filter(Boolean).join(' ');
+      return `<div style="margin:1px 0"><span style="color:#ffdd00">:${p.port}</span> <span style="color:#00e5ff">${p.service||'?'}</span>${ver ? ` <span style="color:#4a6a88">${esc(ver)}</span>` : ''}</div>`;
+    }).join('');
+    const tipHtml = `
+      <div style="color:#00e5ff;font-weight:bold;font-size:13px;margin-bottom:4px">${esc(h.ip)}</div>
+      ${h.hostname ? `<div style="color:#4a6a88">🔤 ${esc(h.hostname)}</div>` : ''}
+      ${os ? `<div style="color:#ffdd00">💻 ${esc(os.name)} (${os.accuracy}%)</div>` : ''}
+      ${h.mac ? `<div style="color:#2a4055">MAC: ${esc(h.mac)}${h.vendor?' · '+esc(h.vendor):''}</div>` : ''}
+      <div style="margin-top:6px;border-top:1px solid #1c2a38;padding-top:4px">
+        <span style="color:#00ff7f">▲ ${openPorts.length} açık</span>
+        ${closedPorts ? ` <span style="color:#2a4055">▼ ${closedPorts} kapalı</span>` : ''}
+        ${filteredPorts ? ` <span style="color:#ff8800">◐ ${filteredPorts} filtreli</span>` : ''}
+        ${scriptCount ? ` <span style="color:#cc44ff">📜 ${scriptCount} script</span>` : ''}
+      </div>
+      ${portLines ? `<div style="margin-top:5px;max-height:120px;overflow:auto">${portLines}</div>` : ''}
+      ${openPorts.length > 20 ? `<div style="color:#2a4055">... ve ${openPorts.length-20} port daha</div>` : ''}
+    `;
+
+    makeNode(nodeG, hp.x, hp.y, {
+      r: 28,
+      bg: '#060d16',
+      stroke: hostColor,
+      filter: openPorts.length > 0 ? 'cyan' : null,
+      icon,
+      label: h.ip,
+      sub2: h.hostname || (openPorts.length + 'p open'),
+      tipHtml,
+      clickCb: () => {
+        // Hostlar sekmesine geç ve bu hosta scroll et
+        document.querySelector('[data-t="hosts"]').click();
+        setTimeout(() => {
+          const cards = document.querySelectorAll('.host-card');
+          cards.forEach(c => { if(c.querySelector('.hc-ip')?.textContent === h.ip) c.scrollIntoView({behavior:'smooth', block:'start'}); });
+        }, 100);
+      },
+    });
+  });
+
+  // ── Subnet gateway nodes ───────────────────────────────────────────────────
+  subnetKeys.forEach(sub => {
+    const sc = subnetPositions[sub];
+    const hostCount = subnets[sub].length;
+    const subOpen   = subnets[sub].reduce((a,h) => a+(h.ports||[]).filter(p=>p.state==='open').length, 0);
+    const tipHtml = `
+      <div style="color:#336699;font-weight:bold;font-size:13px">${sub}.0/24</div>
+      <div style="color:#4a6a88">${hostCount} host · ${subOpen} açık port</div>
+      <div style="margin-top:4px">${subnets[sub].map(h=>`<div style="color:#8baac4">${h.ip}</div>`).join('')}</div>
+    `;
+    makeNode(nodeG, sc.cx, sc.cy, {
+      r: 22,
+      bg: '#050c18',
+      stroke: '#336699',
+      icon: '📡',
+      label: sub+'.0/24',
+      tipHtml,
+    });
+  });
+
+  // ── Scanner node ──────────────────────────────────────────────────────────
+  const cmdStr = stats.command || 'nmap …';
+  const scanTip = `
+    <div style="color:#00e5ff;font-weight:bold;font-size:13px;margin-bottom:4px">Scanner</div>
+    <div style="color:#4a6a88">Komut:</div>
+    <div style="color:#ffdd00;font-size:10px;word-break:break-all">${esc(cmdStr)}</div>
+    ${stats.elapsed ? `<div style="color:#2a4055;margin-top:4px">Süre: ${stats.elapsed}s</div>` : ''}
+    ${stats.hosts_up !== undefined ? `<div>Up: <b style="color:#00ff7f">${stats.hosts_up}</b> / ${stats.hosts_total}</div>` : ''}
+  `;
+  makeNode(nodeG, SCAN_X, SCAN_Y, {
+    r: 32, bg:'#030810', stroke:'#0066aa', filter:'cyan',
+    icon:'⬡', label:'SCANNER',
+    sub2: `nmap ${hosts.length}h`,
+    tipHtml: scanTip,
+  });
+
+  // ── Toolbar overlay (SVG-fixed, not in root group) ────────────────────────
+  const toolbar = mk('g', {'class':'topo-toolbar'}, svgEl);
+
+  // Zoom in
+  const zin = mk('g', {transform:`translate(${W-50},30)`, style:'cursor:pointer'}, toolbar);
+  mk('rect', {x:-14,y:-14,width:28,height:28,rx:4, fill:'#0d1117',stroke:'#1c2a38','stroke-width':'1'}, zin);
+  txt(toolbar, W-50, 30, '+', {'font-size':'18','fill':'#8baac4','font-family':'Inconsolata'});
+  zin.addEventListener('click', () => { scale=Math.min(4,scale*1.25); applyTransform(); });
+
+  // Zoom out
+  const zout = mk('g', {transform:`translate(${W-50},66)`, style:'cursor:pointer'}, toolbar);
+  mk('rect', {x:-14,y:-14,width:28,height:28,rx:4, fill:'#0d1117',stroke:'#1c2a38','stroke-width':'1'}, zout);
+  txt(toolbar, W-50, 66, '−', {'font-size':'18','fill':'#8baac4','font-family':'Inconsolata'});
+  zout.addEventListener('click', () => { scale=Math.max(0.15,scale*0.8); applyTransform(); });
+
+  // Reset
+  const zrst = mk('g', {transform:`translate(${W-50},102)`, style:'cursor:pointer'}, toolbar);
+  mk('rect', {x:-14,y:-14,width:28,height:28,rx:4, fill:'#0d1117',stroke:'#1c2a38','stroke-width':'1'}, zrst);
+  txt(toolbar, W-50, 102, '⊙', {'font-size':'14','fill':'#8baac4','font-family':'Inconsolata'});
+  zrst.addEventListener('click', () => { vx=0; vy=0; scale=1; applyTransform(); });
+
+  // ── Legend panel ──────────────────────────────────────────────────────────
+  const legItems = [
+    ['⬡', '#0066aa', 'Scanner'],
+    ['📡', '#336699', 'Subnet /24'],
+    ['🖥', '#00e5ff', 'Host (açık port)'],
+    ['🖥', '#2a4055', 'Host (port yok)'],
+    ['●', '#00ff7f', 'Port (genel)'],
+    ['●', '#00e5ff', 'Port (web)'],
+    ['●', '#ff8800', 'Port (DB)'],
+    ['●', '#cc44ff', 'Port (SSH/FTP)'],
+  ];
+  const legX = 10, legY = 10;
+  mk('rect', {x:legX, y:legY, width:148, height:legItems.length*17+12, rx:3,
+    fill:'#04080f', stroke:'#1c2a38', 'stroke-width':'1', opacity:'0.9'}, toolbar);
+  legItems.forEach(([icon,color,label],i) => {
+    txt(toolbar, legX+14, legY+16+i*17, icon, {'font-size':'11','fill':color,'text-anchor':'middle'});
+    txt(toolbar, legX+24, legY+16+i*17, label,
+      {'font-size':'9','fill':'#4a6a88','font-family':'Inconsolata','text-anchor':'start'});
+  });
+
+  // ── Scan stats strip (bottom) ─────────────────────────────────────────────
+  const totalOpen = hosts.reduce((a,h)=>a+(h.ports||[]).filter(p=>p.state==='open').length,0);
+  const totalScr  = hosts.reduce((a,h)=>a+
+    (h.ports||[]).reduce((b,p)=>b+Object.keys(p.scripts||{}).length,0)+
+    Object.keys(h.scripts||{}).length, 0);
+  const statsLine = [
+    stats.command ? `CMD: ${stats.command.slice(0,60)}${stats.command.length>60?'…':''}` : '',
+    `Hosts: ${hosts.length}`,
+    `Açık: ${totalOpen}`,
+    `Subnet: ${subnetKeys.length}`,
+    totalScr ? `Scripts: ${totalScr}` : '',
+    stats.elapsed ? `Süre: ${stats.elapsed}s` : '',
+    stats.summary ? stats.summary.slice(0,60) : '',
+  ].filter(Boolean);
+
+  mk('rect',{x:0,y:H-26,width:W,height:26,fill:'#04080f',opacity:'0.92'}, toolbar);
+  mk('line',{x1:0,y1:H-26,x2:W,y2:H-26,stroke:'#1c2a38','stroke-width':'1'}, toolbar);
+  // Satır satır çok fazla uzarsa kırp
+  const statText = mk('text', {x:8,y:H-13,'dominant-baseline':'middle',
+    'font-size':'9','fill':'#2a4055','font-family':'Inconsolata'}, toolbar);
+  statText.textContent = statsLine.join('  ·  ');
+
+  // Hint
+  mk('text',{x:W-6,y:H-13,'text-anchor':'end','dominant-baseline':'middle',
+    'font-size':'9','fill':'#1c2a38','font-family':'Inconsolata'},toolbar)
+    .textContent='scroll=zoom · drag=pan · click host=detay';
+
+  applyTransform();
+}
+
+// ── Job list ──────────────────────────────────────────────────────────────
+function addJobItem(id, target, profile, status) {
+  const list = document.getElementById('job-list');
+  const d = document.createElement('div');
+  d.className = 'job-item active';
+  d.id = 'ji-' + id;
+  d.innerHTML = `<span class="ji-target">${esc(target)}</span>
+    <span class="ji-meta">${esc(profile)} · ${new Date().toLocaleTimeString('tr-TR')}</span>
+    <span class="ji-status running" id="jis-${id}">⏳ TARANYOR</span>`;
+  d.onclick = () => loadJob(id);
+  document.querySelectorAll('.job-item').forEach(el => el.classList.remove('active'));
+  list.insertBefore(d, list.firstChild);
+}
+
+function updateJobItem(id, status) {
+  const el = document.getElementById('jis-' + id);
+  if(!el) return;
+  el.className = 'ji-status ' + status;
+  el.textContent = status === 'done' ? '✓ TAMAM' : status === 'error' ? '✗ HATA' : '■ DURDU';
+}
+
+async function loadJob(id) {
+  document.querySelectorAll('.job-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('ji-' + id)?.classList.add('active');
+  const r = await fetch(`${API}/scan/${id}`);
+  const d = await r.json();
+  curJob = d;
+  // Terminali doldur
+  resetPanels();
+  (d.output_lines || []).forEach(l => classifyAndLog(l));
+  if(d.result) renderResult(d.result, d);
+}
+
+// ── Reset ─────────────────────────────────────────────────────────────────
+function resetPanels() {
+  document.getElementById('terminal').innerHTML = '';
+  lastLineCount = 0;
+  document.getElementById('pe').style.display = 'flex';
+  document.getElementById('ports-content').style.display = 'none';
+  document.getElementById('he').style.display = 'flex';
+  document.getElementById('hosts-content').style.display = 'none';
+  document.getElementById('se').style.display = 'flex';
+  document.getElementById('scripts-content').style.display = 'none';
+  document.getElementById('topo-empty').style.display = 'flex';
+  document.getElementById('topo-svg').style.display = 'none';
+  document.getElementById('topo-svg').innerHTML = '';
+  document.getElementById('summary').style.display = 'none';
+  document.getElementById('prog-fill').style.width = '0%';
+  ['b-ports','b-hosts','b-scripts'].forEach(id => document.getElementById(id).textContent = '0');
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
